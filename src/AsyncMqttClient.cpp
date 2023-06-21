@@ -392,6 +392,8 @@ void AsyncMqttClient::_addBack(AsyncMqttClientInternals::OutPacket* packet) {
 }
 
 void AsyncMqttClient::_handleQueue() {
+  static size_t pubsent = 0;
+  static size_t puback = 0;
   SEMAPHORE_TAKE();
   // On ESP32, onDisconnect is called within the close()-call. So we need to make sure we don't lock
   bool disconnect = false;
@@ -406,12 +408,13 @@ void AsyncMqttClient::_handleQueue() {
       _sent += willSend;
       (void)realSent;
       _client.send();
+      ++pubsent;
       _lastClientActivity = millis();
       _lastPingRequestTime = 0;
       #if ASYNC_TCP_SSL_ENABLED
       log_i("snd #%u: (tls: %u) %u/%u", _head->packetType(), realSent, _sent, _head->size());
       #else
-      log_i("snd #%u: %u/%u", _head->packetType(), _sent, _head->size());
+      log_i("snd #%u: %u/%u id:%u", _head->packetType(), _sent, _head->size(), pubsent);
       #endif
       if (_head->packetType() == AsyncMqttClientInternals::PacketType.DISCONNECT) {
         disconnect = true;
@@ -420,16 +423,16 @@ void AsyncMqttClient::_handleQueue() {
 
     // 2. stop processing when we have to wait for an MQTT acknowledgment
     if (_head->size() == _sent) {
-      if (_head->released()) {
-        log_i("p #%d rel", _head->packetType());
+      while (_head && _head->released()) {
+        ++puback;
+        log_i("p #%d rel id:%u", _head->packetType(), puback);
         AsyncMqttClientInternals::OutPacket* tmp = _head;
         _head = _head->next;
         if (!_head) _tail = nullptr;
         delete tmp;
         _sent = 0;
-      } else {
-        break;  // sending is complete however send next only after mqtt confirmation
       }
+      break;  // sending is complete however send next only after mqtt confirmation
     }
   }
 
@@ -752,4 +755,19 @@ bool AsyncMqttClient::clearQueue() {
 
 const char* AsyncMqttClient::getClientId() const {
   return _clientId;
+}
+
+const char* AsyncMqttClient::state_string() const {
+  switch (_state) {
+    case CONNECTED:
+      return "CONNECTED";
+    case DISCONNECTED:
+      return "DISCONNECTED";
+    case CONNECTING:
+      return "CONNECTING";
+    case DISCONNECTING:
+      return "DISCONNECTING";
+    default:
+      return "UNKNOWN";
+  }
 }

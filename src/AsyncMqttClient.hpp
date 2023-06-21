@@ -84,6 +84,7 @@ class AsyncMqttClient {
   bool clearQueue();  // Not MQTT compliant!
 
   const char* getClientId() const;
+  const char* state_string() const;
 
  private:
   AsyncClient _client;
