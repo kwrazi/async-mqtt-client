@@ -362,13 +362,17 @@ void AsyncMqttClient::_insert(AsyncMqttClientInternals::OutPacket* packet) {
 }
 
 void AsyncMqttClient::_setTimeout(AsyncMqttClientInternals::OutPacket* packet) {
+  // In a high packet loss environment, with high mqtt packet rate, this may cause 
+  // things to be stuck on the queue. timeout is used to help clear waiting payloads waiting
+  // to be released by ACK. timeout needs some tuning depend on situation. It does
+  // not come into play for reliable fast networks.
   auto now_ms = millis();
   switch(packet->packetType()) {
     case AsyncMqttClientInternals::PacketType.PUBLISH:
       packet->timeout = now_ms + 2000u;
       break;
     default:
-      packet->timeout = now_ms + 30000u;
+      packet->timeout = now_ms + 10000u;
       break;
   }
 }
@@ -440,11 +444,11 @@ void AsyncMqttClient::_handleQueue() {
         disconnect = true;
       }
     }
-    ++pubsent;
 
     // 2. stop processing when we have to wait for an MQTT acknowledgment
-    if (_head->size() == _sent) {
+    if (_head->size() <= _sent) {
       auto now_ms = millis();
+      ++pubsent;
       if (!_head->released() && !_head->timedOut(now_ms)) {
         break;  // sending is complete however send next only after mqtt confirmation
       }
