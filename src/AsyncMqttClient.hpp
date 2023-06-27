@@ -87,6 +87,9 @@ class AsyncMqttClient {
   const char* state_string() const;
 
  private:
+  size_t pubsent = 0;
+  size_t puback = 0;
+
   AsyncClient _client;
   AsyncMqttClientInternals::OutPacket* _head;
   AsyncMqttClientInternals::OutPacket* _tail;
@@ -159,6 +162,7 @@ class AsyncMqttClient {
 
   // QUEUE
   void _insert(AsyncMqttClientInternals::OutPacket* packet);    // for PUBREL
+  void _setTimeout(AsyncMqttClientInternals::OutPacket* packet);
   void _addFront(AsyncMqttClientInternals::OutPacket* packet);  // for CONNECT
   void _addBack(AsyncMqttClientInternals::OutPacket* packet);   // all the rest
   void _handleQueue();

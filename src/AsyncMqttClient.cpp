@@ -361,12 +361,25 @@ void AsyncMqttClient::_insert(AsyncMqttClientInternals::OutPacket* packet) {
   _handleQueue();
 }
 
+void AsyncMqttClient::_setTimeout(AsyncMqttClientInternals::OutPacket* packet) {
+  auto now_ms = millis();
+  switch(packet->packetType()) {
+    case AsyncMqttClientInternals::PacketType.PUBLISH:
+      packet->timeout = now_ms + 2000u;
+      break;
+    default:
+      packet->timeout = now_ms + 30000u;
+      break;
+  }
+}
+
 void AsyncMqttClient::_addFront(AsyncMqttClientInternals::OutPacket* packet) {
   // This is only used for the CONNECT packet, to be able to establish a connection
   // before anything else. The queue can be empty or has packets from the continued session.
   // In both cases, _head should always point to the CONNECT packet afterwards.
   SEMAPHORE_TAKE();
   log_i("new front #%u", packet->packetType());
+  _setTimeout(packet);
   if (_head == nullptr) {
     _tail = packet;
   } else {
@@ -380,6 +393,7 @@ void AsyncMqttClient::_addFront(AsyncMqttClientInternals::OutPacket* packet) {
 void AsyncMqttClient::_addBack(AsyncMqttClientInternals::OutPacket* packet) {
   SEMAPHORE_TAKE();
   log_i("new back #%u", packet->packetType());
+  _setTimeout(packet);
   if (!_tail) {
     _head = packet;
   } else {
@@ -392,11 +406,18 @@ void AsyncMqttClient::_addBack(AsyncMqttClientInternals::OutPacket* packet) {
 }
 
 void AsyncMqttClient::_handleQueue() {
-  static size_t pubsent = 0;
-  static size_t puback = 0;
   SEMAPHORE_TAKE();
   // On ESP32, onDisconnect is called within the close()-call. So we need to make sure we don't lock
   bool disconnect = false;
+
+  // uint8_t iid = static_cast<uint8_t>((size_t)this);
+  // auto ptr = _head;
+  // size_t listlen = 0;
+  // while (ptr != nullptr) {
+  //   ptr = ptr->next;
+  //   ++listlen;
+  // }
+  // log_i("%u@hq: len=%u", (uint8_t) this, listlen);
 
   while (_head && _client.space() > 10) {  // safe but arbitrary value, send at least 10 bytes
     // 1. try to send
@@ -406,9 +427,8 @@ void AsyncMqttClient::_handleQueue() {
       size_t willSend = std::min(_head->size() - _sent, _client.space());
       size_t realSent = _client.add(reinterpret_cast<const char*>(_head->data(_sent)), willSend, ASYNC_WRITE_FLAG_COPY);  // flag is set by LWIP anyway, added for clarity
       _sent += willSend;
-      (void)realSent;
+      // (void)realSent;
       _client.send();
-      ++pubsent;
       _lastClientActivity = millis();
       _lastPingRequestTime = 0;
       #if ASYNC_TCP_SSL_ENABLED
@@ -420,19 +440,28 @@ void AsyncMqttClient::_handleQueue() {
         disconnect = true;
       }
     }
+    ++pubsent;
 
     // 2. stop processing when we have to wait for an MQTT acknowledgment
     if (_head->size() == _sent) {
-      while (_head && _head->released()) {
+      auto now_ms = millis();
+      if (!_head->released() && !_head->timedOut(now_ms)) {
+        break;  // sending is complete however send next only after mqtt confirmation
+      }
+      _sent = 0;
+      // remove all packets at head that are expired or have been acknowledged
+      do {
         ++puback;
-        log_i("p #%d rel id:%u", _head->packetType(), puback);
-        AsyncMqttClientInternals::OutPacket* tmp = _head;
+        if (_head->released())
+          log_i("p #%d rel id:%u", _head->packetType(), puback);
+        if (_head->timedOut(now_ms)) 
+          log_i("p #%d tmo id:%u", _head->packetType(), puback);
+        auto tmp = _head;
         _head = _head->next;
         if (!_head) _tail = nullptr;
         delete tmp;
-        _sent = 0;
-      }
-      break;  // sending is complete however send next only after mqtt confirmation
+      } while (_head && (_head->released() || _head->timedOut(now_ms)));
+      break;
     }
   }
 

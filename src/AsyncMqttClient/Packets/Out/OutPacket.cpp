@@ -15,6 +15,10 @@ bool OutPacket::released() const {
   return _released;
 }
 
+bool OutPacket::timedOut(const size_t now_ms) const {
+  return (timeout > 0) && (now_ms > timeout);
+}
+
 uint8_t OutPacket::packetType() const {
   return data(0)[0] >> 4;
 }
@@ -32,6 +36,10 @@ uint8_t OutPacket::qos() const {
 
 void OutPacket::release() {
   _released = true;
+}
+
+void OutPacket::setTimeout(const size_t timeout_ms, const size_t now_ms) {
+  timeout = timeout_ms + now_ms;
 }
 
 uint16_t OutPacket::_nextPacketId = 0;
