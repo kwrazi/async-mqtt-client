@@ -414,16 +414,8 @@ void AsyncMqttClient::_handleQueue() {
   // On ESP32, onDisconnect is called within the close()-call. So we need to make sure we don't lock
   bool disconnect = false;
 
-  // uint8_t iid = static_cast<uint8_t>((size_t)this);
-  // auto ptr = _head;
-  // size_t listlen = 0;
-  // while (ptr != nullptr) {
-  //   ptr = ptr->next;
-  //   ++listlen;
-  // }
-  // log_i("%u@hq: len=%u", (uint8_t) this, listlen);
-
-  while (_head && _client.space() > 10) {  // safe but arbitrary value, send at least 10 bytes
+  constexpr size_t MAX_SEND_ATTEMPTS = 10;
+  for (auto i=0u; i < MAX_SEND_ATTEMPTS && _head && _client.space() > 10; ++i) { // safe but arbitrary value, send at least 10 bytes
     // 1. try to send
     if (_head->size() > _sent) {
       // On SSL the TCP library returns the total amount of bytes, not just the unencrypted payload length.
