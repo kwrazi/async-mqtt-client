@@ -796,3 +796,13 @@ const char* AsyncMqttClient::state_string() const {
       return "UNKNOWN";
   }
 }
+
+int AsyncMqttClient::getQueueLength() {
+  int len = 0;
+  AsyncMqttClientInternals::OutPacket* p = _head;
+  while (p != nullptr) {
+    len++;
+    p = p->next;
+  }
+  return len;
+}
