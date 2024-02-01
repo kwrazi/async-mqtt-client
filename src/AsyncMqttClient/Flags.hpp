@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace AsyncMqttClientInternals {
   constexpr struct {
     const uint8_t RESERVED = 0;
