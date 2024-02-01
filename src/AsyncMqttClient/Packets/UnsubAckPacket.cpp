@@ -3,11 +3,11 @@
 using AsyncMqttClientInternals::UnsubAckPacket;
 
 UnsubAckPacket::UnsubAckPacket(ParsingInformation* parsingInformation, OnUnsubAckInternalCallback callback)
-: _parsingInformation(parsingInformation)
-, _callback(callback)
-, _bytePosition(0)
-, _packetIdMsb(0)
-, _packetId(0) {
+  : _parsingInformation(parsingInformation)
+  , _callback(callback)
+  , _bytePosition(0)
+  , _packetIdMsb(0)
+  , _packetId(0) {
 }
 
 UnsubAckPacket::~UnsubAckPacket() {

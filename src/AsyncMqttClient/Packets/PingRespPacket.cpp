@@ -3,8 +3,8 @@
 using AsyncMqttClientInternals::PingRespPacket;
 
 PingRespPacket::PingRespPacket(ParsingInformation* parsingInformation, OnPingRespInternalCallback callback)
-: _parsingInformation(parsingInformation)
-, _callback(callback) {
+  : _parsingInformation(parsingInformation)
+  , _callback(callback) {
 }
 
 PingRespPacket::~PingRespPacket() {

@@ -6,50 +6,50 @@ namespace AsyncMqttSettings {
   constexpr size_t MAX_QUEUE_SIZE = 5;
   constexpr esp_log_level_t DEFAULT_LOG_LEVEL = ESP_LOG_INFO;
   constexpr esp_log_level_t LOCAL_LOG_LEVEL = ESP_LOG_WARN;
-}
+}  // namespace AsyncMqttSettings
 
 AsyncMqttClient::AsyncMqttClient()
-: _client()
-, _head(nullptr)
-, _tail(nullptr)
-, _sent(0)
-, _state(DISCONNECTED)
-, _disconnectReason(AsyncMqttClientDisconnectReason::TCP_DISCONNECTED)
-, _lastClientActivity(0)
-, _lastServerActivity(0)
-, _lastPingRequestTime(0)
-, _generatedClientId{0}
-, _ip()
-, _host(nullptr)
-, _useIp(false)
+  : _client()
+  , _head(nullptr)
+  , _tail(nullptr)
+  , _sent(0)
+  , _state(DISCONNECTED)
+  , _disconnectReason(AsyncMqttClientDisconnectReason::TCP_DISCONNECTED)
+  , _lastClientActivity(0)
+  , _lastServerActivity(0)
+  , _lastPingRequestTime(0)
+  , _generatedClientId{0}
+  , _ip()
+  , _host(nullptr)
+  , _useIp(false)
 #if ASYNC_TCP_SSL_ENABLED
-, _secure(false)
+  , _secure(false)
 #endif
-, _port(0)
-, _keepAlive(15)
-, _cleanSession(true)
-, _clientId(nullptr)
-, _username(nullptr)
-, _password(nullptr)
-, _willTopic(nullptr)
-, _willPayload(nullptr)
-, _willPayloadLength(0)
-, _willQos(0)
-, _willRetain(false)
+  , _port(0)
+  , _keepAlive(15)
+  , _cleanSession(true)
+  , _clientId(nullptr)
+  , _username(nullptr)
+  , _password(nullptr)
+  , _willTopic(nullptr)
+  , _willPayload(nullptr)
+  , _willPayloadLength(0)
+  , _willQos(0)
+  , _willRetain(false)
 #if ASYNC_TCP_SSL_ENABLED
-, _secureServerFingerprints()
+  , _secureServerFingerprints()
 #endif
-, _onConnectUserCallbacks()
-, _onDisconnectUserCallbacks()
-, _onSubscribeUserCallbacks()
-, _onUnsubscribeUserCallbacks()
-, _onMessageUserCallbacks()
-, _onPublishUserCallbacks()
-, _parsingInformation { .bufferState = AsyncMqttClientInternals::BufferState::NONE }
-, _currentParsedPacket(nullptr)
-, _remainingLengthBufferPosition(0)
-, _remainingLengthBuffer{0}
-, _pendingPubRels() {
+  , _onConnectUserCallbacks()
+  , _onDisconnectUserCallbacks()
+  , _onSubscribeUserCallbacks()
+  , _onUnsubscribeUserCallbacks()
+  , _onMessageUserCallbacks()
+  , _onPublishUserCallbacks()
+  , _parsingInformation{.bufferState = AsyncMqttClientInternals::BufferState::NONE}
+  , _currentParsedPacket(nullptr)
+  , _remainingLengthBufferPosition(0)
+  , _remainingLengthBuffer{0}
+  , _pendingPubRels() {
   _client.onConnect([](void* obj, AsyncClient* c) { (static_cast<AsyncMqttClient*>(obj))->_onConnect(); }, this);
   _client.onDisconnect([](void* obj, AsyncClient* c) { (static_cast<AsyncMqttClient*>(obj))->_onDisconnect(); }, this);
   // _client.onError([](void* obj, AsyncClient* c, int8_t error) { (static_cast<AsyncMqttClient*>(obj))->_onError(error); }, this);
@@ -216,17 +216,8 @@ void AsyncMqttClient::_onConnect() {
     }
   }
 #endif
-  AsyncMqttClientInternals::OutPacket* msg =
-  new AsyncMqttClientInternals::ConnectOutPacket(_cleanSession,
-                                                 _username,
-                                                 _password,
-                                                 _willTopic,
-                                                 _willRetain,
-                                                 _willQos,
-                                                 _willPayload,
-                                                 _willPayloadLength,
-                                                 _keepAlive,
-                                                 _clientId);
+  AsyncMqttClientInternals::OutPacket* msg = new AsyncMqttClientInternals::ConnectOutPacket(_cleanSession, _username, _password, _willTopic, _willRetain,
+                                                                                            _willQos, _willPayload, _willPayloadLength, _keepAlive, _clientId);
   _addFront(msg);
   _handleQueue();
 }
@@ -272,7 +263,8 @@ void AsyncMqttClient::_onData(char* data, size_t len) {
         switch (_parsingInformation.packetType) {
           case AsyncMqttClientInternals::PacketType.CONNACK:
             ESP_LOGI(TAG.data(), "rcv CONNACK");
-            _currentParsedPacket = new AsyncMqttClientInternals::ConnAckPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onConnAck, this, std::placeholders::_1, std::placeholders::_2));
+            _currentParsedPacket = new AsyncMqttClientInternals::ConnAckPacket(
+                &_parsingInformation, std::bind(&AsyncMqttClient::_onConnAck, this, std::placeholders::_1, std::placeholders::_2));
             _client.setRxTimeout(0);
             break;
           case AsyncMqttClientInternals::PacketType.PINGRESP:
@@ -281,31 +273,41 @@ void AsyncMqttClient::_onData(char* data, size_t len) {
             break;
           case AsyncMqttClientInternals::PacketType.SUBACK:
             ESP_LOGI(TAG.data(), "rcv SUBACK");
-            _currentParsedPacket = new AsyncMqttClientInternals::SubAckPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onSubAck, this, std::placeholders::_1, std::placeholders::_2));
+            _currentParsedPacket = new AsyncMqttClientInternals::SubAckPacket(
+                &_parsingInformation, std::bind(&AsyncMqttClient::_onSubAck, this, std::placeholders::_1, std::placeholders::_2));
             break;
           case AsyncMqttClientInternals::PacketType.UNSUBACK:
             ESP_LOGI(TAG.data(), "rcv UNSUBACK");
-            _currentParsedPacket = new AsyncMqttClientInternals::UnsubAckPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onUnsubAck, this, std::placeholders::_1));
+            _currentParsedPacket = new AsyncMqttClientInternals::UnsubAckPacket(&_parsingInformation,
+                                                                                std::bind(&AsyncMqttClient::_onUnsubAck, this, std::placeholders::_1));
             break;
           case AsyncMqttClientInternals::PacketType.PUBLISH:
             ESP_LOGI(TAG.data(), "rcv PUBLISH");
-            _currentParsedPacket = new AsyncMqttClientInternals::PublishPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9), std::bind(&AsyncMqttClient::_onPublish, this, std::placeholders::_1, std::placeholders::_2));
+            _currentParsedPacket = new AsyncMqttClientInternals::PublishPacket(
+                &_parsingInformation,
+                std::bind(&AsyncMqttClient::_onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4,
+                          std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9),
+                std::bind(&AsyncMqttClient::_onPublish, this, std::placeholders::_1, std::placeholders::_2));
             break;
           case AsyncMqttClientInternals::PacketType.PUBREL:
             ESP_LOGI(TAG.data(), "rcv PUBREL");
-            _currentParsedPacket = new AsyncMqttClientInternals::PubRelPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onPubRel, this, std::placeholders::_1));
+            _currentParsedPacket = new AsyncMqttClientInternals::PubRelPacket(&_parsingInformation,
+                                                                              std::bind(&AsyncMqttClient::_onPubRel, this, std::placeholders::_1));
             break;
           case AsyncMqttClientInternals::PacketType.PUBACK:
             ESP_LOGI(TAG.data(), "rcv PUBACK");
-            _currentParsedPacket = new AsyncMqttClientInternals::PubAckPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onPubAck, this, std::placeholders::_1));
+            _currentParsedPacket = new AsyncMqttClientInternals::PubAckPacket(&_parsingInformation,
+                                                                              std::bind(&AsyncMqttClient::_onPubAck, this, std::placeholders::_1));
             break;
           case AsyncMqttClientInternals::PacketType.PUBREC:
             ESP_LOGI(TAG.data(), "rcv PUBREC");
-            _currentParsedPacket = new AsyncMqttClientInternals::PubRecPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onPubRec, this, std::placeholders::_1));
+            _currentParsedPacket = new AsyncMqttClientInternals::PubRecPacket(&_parsingInformation,
+                                                                              std::bind(&AsyncMqttClient::_onPubRec, this, std::placeholders::_1));
             break;
           case AsyncMqttClientInternals::PacketType.PUBCOMP:
             ESP_LOGI(TAG.data(), "rcv PUBCOMP");
-            _currentParsedPacket = new AsyncMqttClientInternals::PubCompPacket(&_parsingInformation, std::bind(&AsyncMqttClient::_onPubComp, this, std::placeholders::_1));
+            _currentParsedPacket = new AsyncMqttClientInternals::PubCompPacket(&_parsingInformation,
+                                                                               std::bind(&AsyncMqttClient::_onPubComp, this, std::placeholders::_1));
             break;
           default:
             ESP_LOGI(TAG.data(), "rcv PROTOCOL VIOLATION");
@@ -350,7 +352,7 @@ void AsyncMqttClient::_onPoll() {
   // send ping to ensure the server will receive at least one message inside keepalive window
   if (_state == CONNECTED && _lastPingRequestTime == 0 && (millis() - _lastClientActivity) >= (_keepAlive * 1000 * 0.7)) {
     _sendPing();
-  // send ping to verify if the server is still there (ensure this is not a half connection)
+    // send ping to verify if the server is still there (ensure this is not a half connection)
   } else if (_state == CONNECTED && _lastPingRequestTime == 0 && (millis() - _lastServerActivity) >= (_keepAlive * 1000 * 0.7)) {
     _sendPing();
   } else {
@@ -368,7 +370,9 @@ size_t AsyncMqttClient::_queueLength() const {
     ets_printf("@%u,", it->packetType());  // show packet type on queue
     it = it->next;
   }
-  if (count > 0) { ets_printf("\n"); }
+  if (count > 0) {
+    ets_printf("\n");
+  }
   return count;
 }
 
@@ -464,7 +468,7 @@ void AsyncMqttClient::_handleQueue() {
   SEMAPHORE_TAKE();
 
   // uint8_t apiflags = ASYNC_WRITE_FLAG_MORE;
-  while (_head) { 
+  while (_head) {
     // 1. try to send
     if (_head->size() > _sent) {
       // On SSL the TCP library returns the total amount of bytes, not just the unencrypted payload length.
@@ -475,23 +479,19 @@ void AsyncMqttClient::_handleQueue() {
         ESP_LOGE(TAG.data(), "tcp.queue failed, %u", _client.space());
         break;
       }
-      if (_client.send() == false) { 
+      if (_client.send() == false) {
         ESP_LOGE(TAG.data(), "tcp.send failed, %u", _client.space());
         break;
       }
       _sent += realSend;
       _lastClientActivity = millis();
-      // if (_head->packetType() != AsyncMqttClientInternals::PacketType.PINGREQ) { 
-        _lastPingRequestTime = 0;
-      // } else {
-      //   _head->release(); // release the ping request message - wait for response or ping timeout
-      // }
+      _lastPingRequestTime = 0;
       taskYIELD();
-      #if ASYNC_TCP_SSL_ENABLED
+#if ASYNC_TCP_SSL_ENABLED
       ESP_LOGI(TAG.data(), "snd #%u: (tls: %u) %u/%u", _head->packetType(), realSent, _sent, _head->size());
-      #else
+#else
       ESP_LOGI(TAG.data(), "snd #%u: %u/%u", _head->packetType(), _sent, _head->size());
-      #endif
+#endif
       if (_head->packetType() == AsyncMqttClientInternals::PacketType.DISCONNECT) {
         disconnect = true;
       }
@@ -533,7 +533,7 @@ void AsyncMqttClient::_clearQueue(bool keepSessionData) {
      *  - QoS 1 and QoS 2 messages which have been sent to the Server, but have not been completely acknowledged.
      *  - QoS 2 messages which have been received from the Server, but have not been completely acknowledged.
      * + (unsent PUB messages with QoS > 0)
-     * 
+     *
      * To be kept:
      * - possibly first message (sent to server but not acked)
      * - PUBREC messages (QoS 2 PUB received but not acked)
@@ -548,8 +548,7 @@ void AsyncMqttClient::_clearQueue(bool keepSessionData) {
         _addBack(packet);
         SEMAPHORE_TAKE();
         packet = next;
-      } else if (packet->qos() > 0 ||
-                 packet->packetType() == AsyncMqttClientInternals::PacketType.PUBREC ||
+      } else if (packet->qos() > 0 || packet->packetType() == AsyncMqttClientInternals::PacketType.PUBREC ||
                  packet->packetType() == AsyncMqttClientInternals::PacketType.PUBCOMP) {
         AsyncMqttClientInternals::OutPacket* next = packet->next;
         ESP_LOGI(TAG.data(), "keep #%u", packet->packetType());
@@ -562,8 +561,8 @@ void AsyncMqttClient::_clearQueue(bool keepSessionData) {
         delete packet;
         packet = next;
       }
-    /* Delete everything when not keeping session data
-     */
+      /* Delete everything when not keeping session data
+       */
     } else {
       AsyncMqttClientInternals::OutPacket* next = packet->next;
       delete packet;
@@ -667,7 +666,7 @@ void AsyncMqttClient::_onPublish(uint16_t packetId, uint8_t qos) {
       // could potentially be dropped if queue is full
       ESP_LOGW(TAG.data(), "PUBACK dropped");
       delete msg;
-    }  
+    }
   } else if (qos == 2) {
     pendingAck.packetType = AsyncMqttClientInternals::PacketType.PUBREC;
     pendingAck.headerFlag = AsyncMqttClientInternals::HeaderFlag.PUBREC_RESERVED;
@@ -885,4 +884,3 @@ const char* AsyncMqttClient::state_string() const {
       return "UNKNOWN";
   }
 }
-

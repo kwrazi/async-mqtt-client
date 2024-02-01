@@ -10,7 +10,8 @@ PingReqOutPacket::PingReqOutPacket() {
 }
 
 const uint8_t* PingReqOutPacket::data(size_t index) const {
-  return &_data[index];;
+  return &_data[index];
+  ;
 }
 
 size_t PingReqOutPacket::size() const {

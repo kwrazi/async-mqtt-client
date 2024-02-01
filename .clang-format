@@ -1,0 +1,20 @@
+---
+# created by https://clang-format-configurator.site/
+# modified by Kiet To
+#
+
+NamespaceIndentation: All
+ConstructorInitializerIndentWidth: 2
+BreakConstructorInitializers: BeforeComma
+IndentWidth: 2
+ColumnLimit: 160
+IndentCaseLabels: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortFunctionsOnASingleLine: None
+AllowShortLoopsOnASingleLine: true
+AlignAfterOpenBracket: Align
+Language: Cpp
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 2
+PenaltyBreakAssignment: 100
+

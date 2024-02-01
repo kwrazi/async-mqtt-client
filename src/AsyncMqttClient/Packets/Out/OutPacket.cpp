@@ -3,13 +3,15 @@
 using AsyncMqttClientInternals::OutPacket;
 
 OutPacket::OutPacket()
-: next(nullptr)
-, timeout(0)
-, noTries(0)
-, _released(true)
-, _packetId(0) {}
+  : next(nullptr)
+  , timeout(0)
+  , noTries(0)
+  , _released(true)
+  , _packetId(0) {
+}
 
-OutPacket::~OutPacket() {}
+OutPacket::~OutPacket() {
+}
 
 bool OutPacket::released() const {
   return _released;

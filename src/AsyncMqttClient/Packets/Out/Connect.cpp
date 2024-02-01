@@ -2,16 +2,8 @@
 
 using AsyncMqttClientInternals::ConnectOutPacket;
 
-ConnectOutPacket::ConnectOutPacket(bool cleanSession,
-                                   const char* username,
-                                   const char* password,
-                                   const char* willTopic,
-                                   bool willRetain,
-                                   uint8_t willQos,
-                                   const char* willPayload,
-                                   uint16_t willPayloadLength,
-                                   uint16_t keepAlive,
-                                   const char* clientId) {
+ConnectOutPacket::ConnectOutPacket(bool cleanSession, const char* username, const char* password, const char* willTopic, bool willRetain, uint8_t willQos,
+                                   const char* willPayload, uint16_t willPayloadLength, uint16_t keepAlive, const char* clientId) {
   char fixedHeader[5];
   fixedHeader[0] = AsyncMqttClientInternals::PacketType.CONNECT;
   fixedHeader[0] = fixedHeader[0] << 4;

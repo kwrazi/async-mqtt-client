@@ -3,11 +3,11 @@
 using AsyncMqttClientInternals::ConnAckPacket;
 
 ConnAckPacket::ConnAckPacket(ParsingInformation* parsingInformation, OnConnAckInternalCallback callback)
-: _parsingInformation(parsingInformation)
-, _callback(callback)
-, _bytePosition(0)
-, _sessionPresent(false)
-, _connectReturnCode(0) {
+  : _parsingInformation(parsingInformation)
+  , _callback(callback)
+  , _bytePosition(0)
+  , _sessionPresent(false)
+  , _connectReturnCode(0) {
 }
 
 ConnAckPacket::~ConnAckPacket() {

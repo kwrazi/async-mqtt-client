@@ -23,35 +23,35 @@
 #define SHA1_SIZE 20
 #endif
 
-#include "AsyncMqttClient/Flags.hpp"
-#include "AsyncMqttClient/ParsingInformation.hpp"
-#include "AsyncMqttClient/MessageProperties.hpp"
-#include "AsyncMqttClient/Helpers.hpp"
 #include "AsyncMqttClient/Callbacks.hpp"
 #include "AsyncMqttClient/DisconnectReasons.hpp"
+#include "AsyncMqttClient/Flags.hpp"
+#include "AsyncMqttClient/Helpers.hpp"
+#include "AsyncMqttClient/MessageProperties.hpp"
+#include "AsyncMqttClient/ParsingInformation.hpp"
 #include "AsyncMqttClient/Storage.hpp"
 
-#include "AsyncMqttClient/Packets/Packet.hpp"
 #include "AsyncMqttClient/Packets/ConnAckPacket.hpp"
+#include "AsyncMqttClient/Packets/Packet.hpp"
 #include "AsyncMqttClient/Packets/PingRespPacket.hpp"
+#include "AsyncMqttClient/Packets/PubAckPacket.hpp"
+#include "AsyncMqttClient/Packets/PubCompPacket.hpp"
+#include "AsyncMqttClient/Packets/PubRecPacket.hpp"
+#include "AsyncMqttClient/Packets/PubRelPacket.hpp"
+#include "AsyncMqttClient/Packets/PublishPacket.hpp"
 #include "AsyncMqttClient/Packets/SubAckPacket.hpp"
 #include "AsyncMqttClient/Packets/UnsubAckPacket.hpp"
-#include "AsyncMqttClient/Packets/PublishPacket.hpp"
-#include "AsyncMqttClient/Packets/PubRelPacket.hpp"
-#include "AsyncMqttClient/Packets/PubAckPacket.hpp"
-#include "AsyncMqttClient/Packets/PubRecPacket.hpp"
-#include "AsyncMqttClient/Packets/PubCompPacket.hpp"
 
 #include "AsyncMqttClient/Packets/Out/Connect.hpp"
+#include "AsyncMqttClient/Packets/Out/Disconn.hpp"
 #include "AsyncMqttClient/Packets/Out/PingReq.hpp"
 #include "AsyncMqttClient/Packets/Out/PubAck.hpp"
-#include "AsyncMqttClient/Packets/Out/Disconn.hpp"
+#include "AsyncMqttClient/Packets/Out/Publish.hpp"
 #include "AsyncMqttClient/Packets/Out/Subscribe.hpp"
 #include "AsyncMqttClient/Packets/Out/Unsubscribe.hpp"
-#include "AsyncMqttClient/Packets/Out/Publish.hpp"
 
 class AsyncMqttClient {
- public:
+public:
   AsyncMqttClient();
   ~AsyncMqttClient();
 
@@ -86,17 +86,12 @@ class AsyncMqttClient {
   const char* getClientId() const;
   const char* state_string() const;
 
- private:
+private:
   AsyncClient _client;
   AsyncMqttClientInternals::OutPacket* _head;
   AsyncMqttClientInternals::OutPacket* _tail;
   size_t _sent;
-  enum {
-    CONNECTING,
-    CONNECTED,
-    DISCONNECTING,
-    DISCONNECTED
-  } _state;
+  enum { CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED } _state;
   AsyncMqttClientDisconnectReason _disconnectReason;
   uint32_t _lastClientActivity;
   uint32_t _lastServerActivity;

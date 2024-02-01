@@ -3,11 +3,11 @@
 using AsyncMqttClientInternals::PubAckPacket;
 
 PubAckPacket::PubAckPacket(ParsingInformation* parsingInformation, OnPubAckInternalCallback callback)
-: _parsingInformation(parsingInformation)
-, _callback(callback)
-, _bytePosition(0)
-, _packetIdMsb(0)
-, _packetId(0) {
+  : _parsingInformation(parsingInformation)
+  , _callback(callback)
+  , _bytePosition(0)
+  , _packetIdMsb(0)
+  , _packetId(0) {
 }
 
 PubAckPacket::~PubAckPacket() {

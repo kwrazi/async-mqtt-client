@@ -3,34 +3,34 @@
 using AsyncMqttClientInternals::PublishPacket;
 
 PublishPacket::PublishPacket(ParsingInformation* parsingInformation, OnMessageInternalCallback dataCallback, OnPublishInternalCallback completeCallback)
-: _parsingInformation(parsingInformation)
-, _dataCallback(dataCallback)
-, _completeCallback(completeCallback)
-, _dup(false)
-, _qos(0)
-, _retain(0)
-, _bytePosition(0)
-, _topicLengthMsb(0)
-, _topicLength(0)
-, _ignore(false)
-, _packetIdMsb(0)
-, _packetId(0)
-, _payloadLength(0)
-, _payloadBytesRead(0) {
-    _dup = _parsingInformation->packetFlags & HeaderFlag.PUBLISH_DUP;
-    _retain = _parsingInformation->packetFlags & HeaderFlag.PUBLISH_RETAIN;
-    char qosMasked = _parsingInformation->packetFlags & 0x06;
-    switch (qosMasked) {
-      case HeaderFlag.PUBLISH_QOS0:
-        _qos = 0;
-        break;
-      case HeaderFlag.PUBLISH_QOS1:
-        _qos = 1;
-        break;
-      case HeaderFlag.PUBLISH_QOS2:
-        _qos = 2;
-        break;
-    }
+  : _parsingInformation(parsingInformation)
+  , _dataCallback(dataCallback)
+  , _completeCallback(completeCallback)
+  , _dup(false)
+  , _qos(0)
+  , _retain(0)
+  , _bytePosition(0)
+  , _topicLengthMsb(0)
+  , _topicLength(0)
+  , _ignore(false)
+  , _packetIdMsb(0)
+  , _packetId(0)
+  , _payloadLength(0)
+  , _payloadBytesRead(0) {
+  _dup = _parsingInformation->packetFlags & HeaderFlag.PUBLISH_DUP;
+  _retain = _parsingInformation->packetFlags & HeaderFlag.PUBLISH_RETAIN;
+  char qosMasked = _parsingInformation->packetFlags & 0x06;
+  switch (qosMasked) {
+    case HeaderFlag.PUBLISH_QOS0:
+      _qos = 0;
+      break;
+    case HeaderFlag.PUBLISH_QOS1:
+      _qos = 1;
+      break;
+    case HeaderFlag.PUBLISH_QOS2:
+      _qos = 2;
+      break;
+  }
 }
 
 PublishPacket::~PublishPacket() {
@@ -80,7 +80,9 @@ void PublishPacket::parsePayload(char* data, size_t len, size_t* currentBytePosi
   size_t remainToRead = len - (*currentBytePosition);
   if (_payloadBytesRead + remainToRead > _payloadLength) remainToRead = _payloadLength - _payloadBytesRead;
 
-  if (!_ignore) _dataCallback(_parsingInformation->topicBuffer, data + (*currentBytePosition), _qos, _dup, _retain, remainToRead, _payloadBytesRead, _payloadLength, _packetId);
+  if (!_ignore)
+    _dataCallback(_parsingInformation->topicBuffer, data + (*currentBytePosition), _qos, _dup, _retain, remainToRead, _payloadBytesRead, _payloadLength,
+                  _packetId);
   _payloadBytesRead += remainToRead;
   (*currentBytePosition) += remainToRead;
 

@@ -3,11 +3,11 @@
 using AsyncMqttClientInternals::PubRelPacket;
 
 PubRelPacket::PubRelPacket(ParsingInformation* parsingInformation, OnPubRelInternalCallback callback)
-: _parsingInformation(parsingInformation)
-, _callback(callback)
-, _bytePosition(0)
-, _packetIdMsb(0)
-, _packetId(0) {
+  : _parsingInformation(parsingInformation)
+  , _callback(callback)
+  , _bytePosition(0)
+  , _packetIdMsb(0)
+  , _packetId(0) {
 }
 
 PubRelPacket::~PubRelPacket() {

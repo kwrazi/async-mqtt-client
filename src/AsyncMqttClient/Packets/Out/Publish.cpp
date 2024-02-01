@@ -45,7 +45,7 @@ PublishOutPacket::PublishOutPacket(const char* topic, uint8_t qos, bool retain, 
 
   _data.reserve(neededSpace);
 
-  _packetId = (qos !=0) ? _getNextPacketId() : 1;
+  _packetId = (qos != 0) ? _getNextPacketId() : 1;
   char packetIdBytes[2];
   packetIdBytes[0] = _packetId >> 8;
   packetIdBytes[1] = _packetId & 0xFF;
