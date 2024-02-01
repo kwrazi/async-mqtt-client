@@ -21,6 +21,8 @@ UnsubscribeOutPacket::UnsubscribeOutPacket(const char* topic) {
   neededSpace += 2;
   neededSpace += topicLength;
 
+  _data.reserve(neededSpace);
+
   _packetId = _getNextPacketId();
   char packetIdBytes[2];
   packetIdBytes[0] = _packetId >> 8;
@@ -31,6 +33,7 @@ UnsubscribeOutPacket::UnsubscribeOutPacket(const char* topic) {
   _data.insert(_data.end(), topicLengthBytes, topicLengthBytes + 2);
   _data.insert(_data.end(), topic, topic + topicLength);
   _released = false;
+  assert(neededSpace == _data.capacity());
 }
 
 const uint8_t* UnsubscribeOutPacket::data(size_t index) const {

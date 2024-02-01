@@ -1,6 +1,45 @@
 #pragma once
 
+extern "C" {
+  typedef int esp_err_t;
+  #include "esp_err.h"
+  #include "esp_heap_caps.h"
+  #include "soc/soc.h"
+}
+
 namespace AsyncMqttClientInternals {
+
+    template <class T>
+    struct PsramAllocator {
+        using value_type      = T;
+        using size_type       = size_t;
+        using pointer         = T *;
+        using const_pointer   = const value_type *;
+        using reference       = value_type &;
+        using const_reference = const value_type &;
+        using difference_type = ptrdiff_t;
+
+        PsramAllocator() noexcept {};
+        template <class U>
+        PsramAllocator(const PsramAllocator<U> &) noexcept {};
+        ~PsramAllocator() noexcept {};
+
+        inline pointer allocate(size_type n) {
+            auto ptr = static_cast<pointer>(heap_caps_malloc(n * sizeof(value_type), MALLOC_CAP_SPIRAM));
+            if (ptr) return ptr;
+            return static_cast<pointer>(malloc(n * sizeof(value_type)));
+        }
+        void deallocate(pointer p, size_type n) { heap_caps_free(p); }
+
+        bool operator==(const PsramAllocator &a) { return this == &a; };
+        bool operator!=(const PsramAllocator &a) { return !operator==(a); };
+    };
+
+inline bool is_in_psram(const uint8_t *ptr) {
+  auto addr = (size_t) ptr;
+  return (addr >= SOC_EXTRAM_DATA_LOW) && (addr < SOC_EXTRAM_DATA_HIGH);
+}
+
 class Helpers {
  public:
   static uint32_t decodeRemainingLength(char* bytes) {

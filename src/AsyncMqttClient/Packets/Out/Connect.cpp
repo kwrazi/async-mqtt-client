@@ -151,6 +151,7 @@ ConnectOutPacket::ConnectOutPacket(bool cleanSession,
     _data.insert(_data.end(), passwordLengthBytes, passwordLengthBytes + 2);
     _data.insert(_data.end(), password, password + passwordLength);
   }
+  assert(neededSpace == _data.capacity());
 }
 
 const uint8_t* ConnectOutPacket::data(size_t index) const {

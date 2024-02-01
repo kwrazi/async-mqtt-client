@@ -82,15 +82,11 @@ class AsyncMqttClient {
   uint16_t unsubscribe(const char* topic);
   uint16_t publish(const char* topic, uint8_t qos, bool retain, const char* payload = nullptr, size_t length = 0, bool dup = false, uint16_t message_id = 0);
   bool clearQueue();  // Not MQTT compliant!
-  int getQueueLength();
 
   const char* getClientId() const;
   const char* state_string() const;
 
  private:
-  size_t pubsent = 0;
-  size_t puback = 0;
-
   AsyncClient _client;
   AsyncMqttClientInternals::OutPacket* _head;
   AsyncMqttClientInternals::OutPacket* _tail;
@@ -162,10 +158,11 @@ class AsyncMqttClient {
   void _onPoll();
 
   // QUEUE
+  size_t _queueLength() const;
+  void _removeBack();
   void _insert(AsyncMqttClientInternals::OutPacket* packet);    // for PUBREL
-  void _setTimeout(AsyncMqttClientInternals::OutPacket* packet);
   void _addFront(AsyncMqttClientInternals::OutPacket* packet);  // for CONNECT
-  void _addBack(AsyncMqttClientInternals::OutPacket* packet);   // all the rest
+  bool _addBack(AsyncMqttClientInternals::OutPacket* packet);   // all the rest
   void _handleQueue();
   void _clearQueue(bool keepSessionData);
 

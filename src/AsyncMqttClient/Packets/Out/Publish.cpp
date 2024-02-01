@@ -26,7 +26,11 @@ PublishOutPacket::PublishOutPacket(const char* topic, uint8_t qos, bool retain, 
   topicLengthBytes[1] = topicLength & 0xFF;
 
   uint32_t payloadLength = length;
-  if (payload != nullptr && payloadLength == 0) payloadLength = strlen(payload);
+  if (payload != nullptr && payloadLength == 0) payloadLength = strnlen(payload, MAX_PUBLISH_PAYLOAD_LENGTH);
+  if (payloadLength == MAX_PUBLISH_PAYLOAD_LENGTH) {
+    log_e("payload length is too large");
+    payloadLength = 0;
+  }
 
   uint32_t remainingLength = 2 + topicLength + payloadLength;
   if (qos != 0) remainingLength += 2;
@@ -54,6 +58,7 @@ PublishOutPacket::PublishOutPacket(const char* topic, uint8_t qos, bool retain, 
     _released = false;
   }
   if (payload != nullptr) _data.insert(_data.end(), payload, payload + payloadLength);
+  assert(neededSpace == _data.capacity());
 }
 
 const uint8_t* PublishOutPacket::data(size_t index) const {

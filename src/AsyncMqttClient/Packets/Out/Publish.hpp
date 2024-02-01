@@ -8,6 +8,8 @@
 #include "../../Helpers.hpp"
 #include "../../Storage.hpp"
 
+#define MAX_PUBLISH_PAYLOAD_LENGTH 5120
+
 namespace AsyncMqttClientInternals {
 class PublishOutPacket : public OutPacket {
  public:
@@ -18,6 +20,6 @@ class PublishOutPacket : public OutPacket {
   void setDup();  // you cannot unset dup
 
  private:
-  std::vector<uint8_t> _data;
+  std::vector<uint8_t, PsramAllocator<uint8_t>> _data;
 };
 }  // namespace AsyncMqttClientInternals

@@ -10,7 +10,7 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/marvinroger/async-mqtt-client.git"
+    "url": "https://github.com/kwrazi/async-mqtt-client.git"
   },
   "version": "0.9.0",
   "frameworks": "arduino",
@@ -18,13 +18,20 @@
   "dependencies": [
     {
       "name": "ESPAsyncTCP",
-      "version": ">=1.2.2",
+      "version": "https://github.com/me-no-dev/ESPAsyncTCP.git",
       "platforms": "espressif8266"
     },
     {
       "name": "AsyncTCP",
-      "version": ">=1.1.1",
+      "version": "https://github.com/kwrazi/AsyncTCP.git",
       "platforms": "espressif32"
     }
-  ]
+  ],
+  "build": {
+    "flags": [
+      "-DCONFIG_ARDUHAL_ESP_LOG",
+      "-DCONFIG_ARDUHAL_LOG_COLORS",
+      "-DCORE_DEBUG_LEVEL=ARDUHAL_LOG_LEVEL_WARN"
+    ]
+  }
 }
