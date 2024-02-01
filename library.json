@@ -29,6 +29,14 @@
   ],
   "build": {
     "flags": [
+      "-std=gnu++17",
+      "-ffunction-sections",
+      "-Wl,--gc-sections",
+      "-fexceptions",
+      "-DPIO_FRAMEWORK_ESP_IDF_ENABLE_EXCEPTIONS",
+      "-DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS",
+      "-DBOARD_HAS_PSRAM",
+      "-mfix-esp32-psram-cache-issue",
       "-DCONFIG_ARDUHAL_ESP_LOG",
       "-DCONFIG_ARDUHAL_LOG_COLORS",
       "-DCORE_DEBUG_LEVEL=ARDUHAL_LOG_LEVEL_WARN"

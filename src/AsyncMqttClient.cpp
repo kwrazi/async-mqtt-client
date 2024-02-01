@@ -1,5 +1,7 @@
 #include "AsyncMqttClient.hpp"
 
+#include <string_view>
+
 constexpr static std::string_view TAG = "aMQTTc";  // requires C++17
 
 namespace AsyncMqttSettings {
