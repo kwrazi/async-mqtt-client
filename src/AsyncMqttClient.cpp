@@ -477,10 +477,23 @@ void AsyncMqttClient::_handleQueue() {
       // So we calculate the amount to be written ourselves.
       size_t willSend = std::min(_head->size() - _sent, _client.space());
       size_t realSend = _client.add(reinterpret_cast<const char*>(_head->data(_sent)), willSend);  // flag is set by LWIP anyway, added for clarity
+
+      static auto last = millis();
+      auto now = millis();
+      
       if (realSend == 0) {
-        ESP_LOGE(TAG.data(), "tcp.queue failed, %u", _client.space());
+        if(now-last>TCP_FAIL_TIMEOUT) {
+          ESP_LOGE(TAG.data(), "TCP timeout. Restarting");
+          ESP.restart();
+        }
+        
         break;
       }
+      else
+      {
+        last = now;
+      }
+
       if (_client.send() == false) {
         ESP_LOGE(TAG.data(), "tcp.send failed, %u", _client.space());
         break;

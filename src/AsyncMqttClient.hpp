@@ -9,6 +9,10 @@
 #define MQTT_MIN_FREE_MEMORY 4096
 #endif
 
+#ifndef TCP_FAIL_TIMEOUT
+#define TCP_FAIL_TIMEOUT 60000
+#endif
+
 #ifdef ESP32
 #include <AsyncTCP.h>
 #include <freertos/semphr.h>
