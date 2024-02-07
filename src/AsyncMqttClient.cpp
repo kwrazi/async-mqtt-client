@@ -482,8 +482,7 @@ void AsyncMqttClient::_handleQueue() {
       auto now = millis();
       
       if (realSend == 0) {
-        ESP_LOGE(TAG.data(), "tcp.queue failed, %u", _client.space());
-
+        ESP_LOGE(TAG.data(), "tcp.queue failed, %u, %d-%d=%d", _client.space(),now,last,now-last);
         if(now-last>TCP_FAIL_TIMEOUT) {
           ESP_LOGE(TAG.data(), "TCP timeout. Restarting");
           ESP.restart();
@@ -491,7 +490,11 @@ void AsyncMqttClient::_handleQueue() {
         
         break;
       }
-      else last = now;
+      else
+      {
+        ESP_LOGE(TAG.data(),"tcp.queue success");
+        last = now;
+      }
 
       if (_client.send() == false) {
         ESP_LOGE(TAG.data(), "tcp.send failed, %u", _client.space());

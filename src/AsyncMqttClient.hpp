@@ -10,7 +10,7 @@
 #endif
 
 #ifndef TCP_FAIL_TIMEOUT
-#define TCP_FAIL_TIMEOUT 180000
+#define TCP_FAIL_TIMEOUT 30000
 #endif
 
 #ifdef ESP32
