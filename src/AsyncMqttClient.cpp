@@ -369,12 +369,10 @@ size_t AsyncMqttClient::_queueLength() const {
   size_t count = 0u;
   while (it != nullptr) {
     ++count;
-    ets_printf("@%u,", it->packetType());  // show packet type on queue
+    // ets_printf("@%u,", it->packetType());  // show packet type on queue
     it = it->next;
   }
-  if (count > 0) {
-    ets_printf("\n");
-  }
+  // if (count > 0) { ets_printf("\n"); }
   return count;
 }
 
@@ -382,7 +380,7 @@ void AsyncMqttClient::_removeBack() {
   auto count = 0u;
   if (_head == nullptr) return;
   if (_head->next == nullptr) {
-    ESP_LOGI(TAG.data(), "del back pos=%u, #%u", count, _head->packetType());
+    ESP_LOGD(TAG.data(), "del back pos=%u, #%u", count, _head->packetType());
     delete _head;
     _head = nullptr;
     _tail = nullptr;
@@ -393,7 +391,7 @@ void AsyncMqttClient::_removeBack() {
     new_tail = new_tail->next;
     ++count;
   }
-  ESP_LOGI(TAG.data(), "del back pos=%u, #%u", count, _head->packetType());
+  ESP_LOGD(TAG.data(), "del back pos=%u, #%u", count, _head->packetType());
   delete new_tail->next;
   _tail = new_tail;
 }
@@ -447,7 +445,7 @@ bool AsyncMqttClient::_addBack(AsyncMqttClientInternals::OutPacket* packet) {
     packet->release();
     // this is an unlinked packet that should be dropped/deleted externally
   } else {
-    ESP_LOGI(TAG.data(), "new back #%u", packet->packetType());
+    ESP_LOGD(TAG.data(), "new back #%u", packet->packetType());
     if (!_tail) {
       _head = packet;
     } else {
@@ -466,7 +464,7 @@ void AsyncMqttClient::_handleQueue() {
   // On ESP32, onDisconnect is called within the close()-call. So we need to make sure we don't lock
   bool disconnect = false;
 
-  ESP_LOGI(TAG.data(), "hq< %u,%u", _sent, _client.space());
+  ESP_LOGD(TAG.data(), "hq< %u,%u", _sent, _client.space());
   SEMAPHORE_TAKE();
 
   // uint8_t apiflags = ASYNC_WRITE_FLAG_MORE;
@@ -480,17 +478,15 @@ void AsyncMqttClient::_handleQueue() {
 
       static auto last = millis();
       auto now = millis();
-      
+
       if (realSend == 0) {
-        if(now-last>TCP_FAIL_TIMEOUT) {
+        if (now - last > TCP_FAIL_TIMEOUT) {
           ESP_LOGE(TAG.data(), "TCP timeout. Restarting");
           ESP.restart();
         }
-        
+
         break;
-      }
-      else
-      {
+      } else {
         last = now;
       }
 
@@ -503,9 +499,9 @@ void AsyncMqttClient::_handleQueue() {
       _lastPingRequestTime = 0;
       taskYIELD();
 #if ASYNC_TCP_SSL_ENABLED
-      ESP_LOGI(TAG.data(), "snd #%u: (tls: %u) %u/%u", _head->packetType(), realSent, _sent, _head->size());
+      ESP_LOGD(TAG.data(), "snd #%u: (tls: %u) %u/%u", _head->packetType(), realSent, _sent, _head->size());
 #else
-      ESP_LOGI(TAG.data(), "snd #%u: %u/%u", _head->packetType(), _sent, _head->size());
+      ESP_LOGD(TAG.data(), "snd #%u: %u/%u", _head->packetType(), _sent, _head->size());
 #endif
       if (_head->packetType() == AsyncMqttClientInternals::PacketType.DISCONNECT) {
         disconnect = true;
@@ -516,7 +512,7 @@ void AsyncMqttClient::_handleQueue() {
     if (_head->size() <= _sent) {
       auto freed_bytes = _head->size();
       if (_head->released()) {
-        ESP_LOGI(TAG.data(), "p #%d rel", _head->packetType());
+        ESP_LOGD(TAG.data(), "p #%d rel", _head->packetType());
         AsyncMqttClientInternals::OutPacket* tmp = _head;
         _head = _head->next;
         if (!_head) _tail = nullptr;
@@ -529,7 +525,7 @@ void AsyncMqttClient::_handleQueue() {
   }
 
   SEMAPHORE_GIVE();
-  ESP_LOGI(TAG.data(), "hq>");
+  ESP_LOGD(TAG.data(), "hq>");
 
   if (disconnect) {
     ESP_LOGW(TAG.data(), "snd DISCONN, disconnecting");
@@ -558,7 +554,7 @@ void AsyncMqttClient::_clearQueue(bool keepSessionData) {
       if (packet->qos() > 0 && packet->size() <= _sent) {  // check for qos includes check for PUB-packet type
         reinterpret_cast<AsyncMqttClientInternals::PublishOutPacket*>(packet)->setDup();
         AsyncMqttClientInternals::OutPacket* next = packet->next;
-        ESP_LOGI(TAG.data(), "keep #%u", packet->packetType());
+        ESP_LOGD(TAG.data(), "keep #%u", packet->packetType());
         SEMAPHORE_GIVE();
         _addBack(packet);
         SEMAPHORE_TAKE();
